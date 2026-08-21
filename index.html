@@ -306,9 +306,75 @@
   @media (prefers-reduced-motion: reduce){
     .reveal, .reveal-stagger > *{opacity:1 !important; transform:none !important; transition:none !important;}
   }
+
+  /* SITE NAV */
+  .site-nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(10,28,46,.92); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    border-bottom:1px solid rgba(228,200,118,.18);
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 28px; max-width:1180px; margin:0 auto;
+  }
+  .nav-brand{
+    color:#f2ede0; font-family:'Playfair Display',Georgia,serif; font-weight:700;
+    font-size:1rem; text-decoration:none; flex-shrink:0;
+  }
+  .nav-links{list-style:none; display:flex; flex-wrap:wrap; gap:16px; margin:0; padding:0;}
+  .nav-links a{
+    color:#d9e0e8; text-decoration:none; font-size:.8rem; font-weight:500;
+    letter-spacing:.02em; transition:color .2s ease; white-space:nowrap;
+  }
+  .nav-links a:hover, .nav-links a.active{color:var(--gold-light);}
+  .nav-toggle{
+    display:none; flex-direction:column; justify-content:center; gap:5px;
+    background:none; border:none; cursor:pointer; padding:6px; margin:-6px;
+  }
+  .nav-toggle span{width:22px; height:2px; background:#f2ede0; border-radius:2px; transition:transform .2s ease, opacity .2s ease;}
+  .nav-scrim{display:none;}
+  @media (max-width:860px){
+    .nav-links{
+      position:fixed; inset:0 0 0 auto; height:100vh; width:min(78vw,300px);
+      background:var(--navy-deep); flex-direction:column; align-items:flex-start;
+      padding:88px 28px 28px; gap:20px; transform:translateX(100%);
+      transition:transform .3s ease; box-shadow:-8px 0 30px rgba(0,0,0,.35);
+    }
+    .nav-links.open{transform:translateX(0);}
+    .nav-links a{font-size:.95rem;}
+    .nav-toggle{display:flex;}
+    .nav-scrim{
+      display:block; position:fixed; inset:0; background:rgba(10,20,30,.5);
+      opacity:0; pointer-events:none; transition:opacity .3s ease; z-index:49;
+    }
+    .nav-scrim.open{opacity:1; pointer-events:auto;}
+  }
 </style>
 </head>
+
 <body>
+
+<nav class="site-nav">
+  <div class="wrap nav-inner">
+    <a href="#about" class="nav-brand">Minh Lam Thanh Tue</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about">About</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#coursework">Coursework</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#certifications">Certifications</a></li>
+      <li><a href="#volunteer">Community</a></li>
+      <li><a href="#hobbies">Hobbies</a></li>
+      <li><a href="#references">Sources</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+  <div class="nav-scrim" id="navScrim"></div>
+</nav>
 
 <header class="hero">
   <div class="wrap hero-inner">
@@ -818,6 +884,49 @@ setInterval(function(){
 
   revealEls.forEach(function(el){ observer.observe(el); });
   staggerEls.forEach(function(el){ observer.observe(el); });
+})();
+
+(function(){
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  var scrim = document.getElementById('navScrim');
+  if (!toggle || !links) return;
+
+  function closeMenu(){
+    links.classList.remove('open');
+    if (scrim) scrim.classList.remove('open');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+  function toggleMenu(){
+    var open = links.classList.toggle('open');
+    if (scrim) scrim.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  toggle.addEventListener('click', toggleMenu);
+  if (scrim) scrim.addEventListener('click', closeMenu);
+  links.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', closeMenu);
+  });
+
+  var navAnchors = links.querySelectorAll('a[href^="#"]');
+  var sections = Array.prototype.map.call(navAnchors, function(a){
+    return document.getElementById(a.getAttribute('href').slice(1));
+  }).filter(Boolean);
+
+  if ('IntersectionObserver' in window && sections.length){
+    var navObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        var anchor = links.querySelector('a[href="#' + entry.target.id + '"]');
+        if (!anchor) return;
+        if (entry.isIntersecting){
+          navAnchors.forEach(function(a){ a.classList.remove('active'); });
+          anchor.classList.add('active');
+        }
+      });
+    }, {rootMargin: '-45% 0px -50% 0px'});
+    sections.forEach(function(sec){ navObserver.observe(sec); });
+  }
 })();
 </script>
 
